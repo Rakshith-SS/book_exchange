@@ -13,14 +13,12 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
 from .serializers import (
     RegisterUserSerializer,
-    LoginUserSerializer,
 )
 from rest_framework_simplejwt.token_blacklist.models import (
     OutstandingToken,
     BlacklistedToken
 )
-from .models import User
-import random
+from .models import User, InterestedTopic
 
 
 class RegisterUserViews(APIView):
@@ -46,29 +44,38 @@ class RegisterUserViews(APIView):
             )
 
 
-"""
+class InterestedTopicView(APIView):
+    def get(self, request):
+        topics = InterestedTopic.objects.first()
+        return Response({
+            "message": "success",
+            "topic_names": topics.interest_names
+        })
+
+
 class LoginUser(APIView):
     #    permission_classes = (IsAuthenticated, )
 
     def post(self, request):
-        serializer = LoginUserSerializer(data=request.data)
-        if serializer.is_valid():
-            user = authenticate(username=serializer.data["username"],
-                                password=serializer.data["password"]
-                                )
-            if user is not None:
+        data = request.data
+        print(data)
+        email = data.get('email', None)
+        password = data.get('password', None)
+        if email is None or password is None:
+            return Response({"message": "error", "status": "400", "error_message": "email/password is required"})
+
+        if email is not None and password is not None:
+            user = User.objects.filter(email=email).first()
+            if user is None:
+                return Response({"message": "error", "status": "400", "error_messsage": "User doesn't exist."})
+
+            password_check = user.check_password(password)
+            if password_check is True:
                 refresh = RefreshToken.for_user(user)
                 data = {"access_token": str(
-                    refresh.access_token), "refresh_token": str(refresh)}
-                message = f"sent otp to {user.email} mail successfully"
-                random_number = random.randint(100000, 999999)
+                    refresh.access_token) }
+                message = "Login Successful"
 
-                send_otp(user.email, random_number)
-
-                if user.login_otp is not None:
-                    user.login_otp = ""
-                user.login_otp = random_number
-                user.save()
                 return Response(
                     {
                         "message": message,
@@ -92,5 +99,3 @@ class LoginUser(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-            """

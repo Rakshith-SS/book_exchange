@@ -72,24 +72,5 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "interests", "rating","postal_address", "phone_no"]
-
-
-class LoginUserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=32)
-    password = serializers.CharField(min_length=6, max_length=64)
-
-    def validate_username(self, username):
-        """
-            Validate username
-        """
-        if valid_username.match(username):
-            pass
-        else:
-            raise serializers.ValidationError("{username} is invalid")
-
-        return username
-
-    class Meta:
-        model = User
-        fields = ["username", "password"]
+        fields = ["username", "email", "password", "interests",
+                  "rating", "postal_address", "phone_no"]
