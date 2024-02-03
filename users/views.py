@@ -6,8 +6,10 @@ from django.contrib.auth.hashers import make_password
 from .serializers import (
     RegisterUserSerializer,
 )
+from rest_framework.permissions import IsAuthenticated
 
 from .models import User, InterestedTopic
+from book_listing.models import ListedBooks
 
 
 class RegisterUserViews(APIView):
@@ -62,7 +64,7 @@ class LoginUser(APIView):
             if password_check is True:
                 refresh = RefreshToken.for_user(user)
                 data = {"access_token": str(
-                    refresh.access_token) }
+                    refresh.access_token)}
                 message = "Login Successful"
 
                 return Response(
@@ -80,3 +82,49 @@ class LoginUser(APIView):
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
+
+class UserProfileAPI(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, user_id):
+        user = User.objects.filter(id=user_id).first()
+        if user is None:
+            return Response({
+                "message": "success",
+                "data": {
+                    "username": "",
+                    "short_description": "",
+                    "books_uploaded_by_user": []
+                    }
+            }, status=status.HTTP_200_OK)
+
+        data_resp = {}
+        data_resp["username"] = user.username
+        data_resp["short_description"] = user.short_description
+
+        listed_books = ListedBooks.objects.filter(is_deleted=False).all()
+        output_resp = []
+        for listed_book in listed_books:
+            data = {}
+            data['created_at'] = listed_book.created_at.strftime(
+                "%Y-%m-%d %H:%M:%S")
+            data['updated_at'] = listed_book.updated_at.strftime(
+                "%Y-%m-%d %H:%M:%S")
+            data["created_at"] = listed_book.created_at
+            data["updated_at"] = listed_book.updated_at
+            data["book_name"] = listed_book.book_name
+            data["added_by_user_ids"] = listed_book.added_by_user_ids
+            data["description"] = listed_book.description
+            data["added_by_users"] = listed_book.added_by_users
+            data["rating"] = listed_book.rating
+            # data["rating"] = listed_book.rating
+            data["id"] = listed_book.id
+            output_resp.append(data)
+
+        data_resp["books_uploaded_by_user"] = output_resp
+
+        return Response({
+            "message": "success",
+            "data": data_resp
+        }, status=status.HTTP_200_OK)
