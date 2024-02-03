@@ -151,3 +151,8 @@ class GetPersonalRecommendations(APIView):
                 "message": "success",
                 "data": output_resp
             }, status=status.HTTP_200_OK)
+
+        return Response({
+            "message": "success",
+            "data": []
+        }, status=status.HTTP_200_OK)
