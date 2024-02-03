@@ -89,13 +89,5 @@ class LoginUser(APIView):
                     {
                         "message": "Invalid username or password"
                     },
-                    status=status.HTTP_200_OK
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-        else:
-            return Response(
-                {
-                    "message": "Incorrect username or password were provided",
-                    "data": serializer.errors
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )

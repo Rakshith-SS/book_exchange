@@ -29,9 +29,6 @@ class GetListedBooks(APIView):
                 data["rating"] = listed_book.rating
                 # data["rating"] = listed_book.rating
                 data["id"] = listed_book.id
-
-                # {"sagar": 2}
-
                 output_resp.append(data)
             return Response(
                 {"message": "success",
@@ -64,7 +61,7 @@ class AddBooks(APIView):
             if topics is None:
                 return Response({
                     "message": "Topics are not Selected"
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             if user is not None:
                 username = user.username
@@ -73,7 +70,8 @@ class AddBooks(APIView):
                 return Response({
                     "message": "Book Name is required"
                 }, status=status.HTTP_400_BAD_REQUEST)
-            listed_book = ListedBooks.objects.filter(book_name=book_name).first()
+            listed_book = ListedBooks.objects.filter(
+                book_name=book_name).first()
             if listed_book is not None:
                 added_by_user_ids = listed_book.added_by_user_ids
                 added_by_users = listed_book.added_by_users
@@ -113,3 +111,43 @@ class AddBooks(APIView):
             return Response({
                 "message": "Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetPersonalRecommendations(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        user_id = request.user.id
+
+        user = User.objects.filter(id=user_id).first()
+        if user is not None:
+            interested_topics = user.interests
+            output_resp = []
+            check_book = []
+            for interested_topic in interested_topics:
+                listed_books = ListedBooks.objects.filter(
+                    topics__contains=[interested_topic]
+                )
+                for listed_book in listed_books:
+                    if listed_book not in check_book:
+                        check_book.append(listed_book)
+                        data = {}
+                        data['created_at'] = listed_book.created_at.strftime(
+                            "%Y-%m-%d %H:%M:%S")
+                        data['updated_at'] = listed_book.updated_at.strftime(
+                            "%Y-%m-%d %H:%M:%S")
+                        data["created_at"] = listed_book.created_at
+                        data["updated_at"] = listed_book.updated_at
+                        data["book_name"] = listed_book.book_name
+                        data["added_by_user_ids"] = listed_book.added_by_user_ids
+                        data["description"] = listed_book.description
+                        data["added_by_users"] = listed_book.added_by_users
+                        data["rating"] = listed_book.rating
+                        # data["rating"] = listed_book.rating
+                        data["id"] = listed_book.id
+                        output_resp.append(data)
+
+            return Response({
+                "message": "success",
+                "data": output_resp
+            }, status=status.HTTP_200_OK)
