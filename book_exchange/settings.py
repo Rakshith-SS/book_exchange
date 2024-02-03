@@ -25,7 +25,7 @@ SECRET_KEY = '34m2#1_28cpfzdpsupou^ovcb2q%%a+p^38@883v(!ptucb&)t'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'book_listing'
+    'book_listing',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -48,7 +49,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
+
+# CORS_ALLOWED_ORIGINS = [
+#         "*"
+# ]
 
 ROOT_URLCONF = 'book_exchange.urls'
 
@@ -123,3 +130,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+CORS_ALLOW_ALL_ORIGINS = True
