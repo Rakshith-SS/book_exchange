@@ -2,9 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import ListedBooks
-from .serializer import AddBookSerializer, GetBooksSerializer
-from django.core.serializers.json import DjangoJSONEncoder
-import json
+from .serializer import AddBookSerializer
+from rest_framework.permissions import IsAuthenticated
+from users.models import User
 
 
 class GetListedBooks(APIView):
@@ -56,23 +56,52 @@ class GetListedBooks(APIView):
 
 
 class AddBooks(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         try:
-            serializer = AddBookSerializer(data=request.data)
-            if serializer.is_valid():
-                user_id = serializer.validated_data["user_id"]
-                book_name = serializer.validated_data["book_name"]
-                author_name = serializer.validated_data["author_name"]
-                description = serializer.validated_data["description"]
-                added_by_user = serializer.validated_data["added_by_user"]
-                rating = serializer.validated_data["rating"]
+            data = request.data
+            user_id = request.user.id
+            book_name = data.get("book_name", None)
+            author_name = data.get("author_name", None)
+            description = data.get("description", None)
+            rating = data.get("rating", None)
 
+            user = User.objects.filter(id=user_id).first()
+            if user is not None:
+                username = user.username
+
+            if book_name is None:
+                return Response({
+                    "message": "Book Name is required"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            listed_book = ListedBooks.objects.filter(book_name=book_name).first()
+            if listed_book is not None:
+                added_by_user_ids = listed_book.added_by_user_ids
+                added_by_users = listed_book.added_by_users
+
+                if user_id not in added_by_user_ids:
+                    added_by_user_ids.append(user_id)
+
+                if username not in added_by_users:
+                    added_by_users.append(username)
+
+                ListedBooks.objects.filter(book_name=book_name).update(
+                    added_by_user_ids=added_by_user_ids,
+                    added_by_users=added_by_users
+                )
+                return Response(
+                    {
+                        "message": "success"
+                    })
+            else:
+                # pass
                 listed_book = ListedBooks(
                     added_by_user_ids=[user_id],
                     book_name=book_name,
                     author_name=author_name,
                     description=description,
-                    added_by_users=[added_by_user],
+                    added_by_users=[username],
                     rating=rating
                 )
                 listed_book.save()
@@ -80,13 +109,8 @@ class AddBooks(APIView):
                 return Response({
                     "message": "success"
                 })
-            else:
-                return Response({
-                    "message": "error"
-                })
         except Exception as e:
             print(e)
             return Response({
-                "message": "error"
-            })
-            pass
+                "message": "Something went wrong"
+            }, status=status.HTTP_400_BAD_REQUEST)
