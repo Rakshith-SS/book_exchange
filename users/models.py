@@ -14,6 +14,7 @@ class User(AbstractUser):
     postal_address = models.CharField(max_length=1024)
     phone_no = models.CharField(max_length=15)
     wallet = models.IntegerField(default=100)
+    short_description = models.TextField(default='')
 
     def __str__(self):
         return f'<User {self.username}, {self.email}>'

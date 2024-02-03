@@ -2,22 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import (
-    JWTStatelessUserAuthentication
-)
-from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import authenticate
 from .serializers import (
     RegisterUserSerializer,
 )
-from rest_framework_simplejwt.token_blacklist.models import (
-    OutstandingToken,
-    BlacklistedToken
-)
+
 from .models import User, InterestedTopic
 
 
