@@ -43,14 +43,6 @@ class GetListedBooks(APIView):
             return Response({
                 "message": "success",
                 "data": [
-                    {
-                        "added_by_user_ids": [1],
-                        "book_name": "Sherlock Holmes",
-                        "author_name": "Sir Arthur Conan Doyle",
-                        "Description": "A Detective Novel",
-                        "Rating": 1,
-                        "id": 1
-                    }
                 ]
             }, status=status.HTTP_200_OK)
 
@@ -66,8 +58,14 @@ class AddBooks(APIView):
             author_name = data.get("author_name", None)
             description = data.get("description", None)
             rating = data.get("rating", None)
+            topics = data.get("topics", None)
 
             user = User.objects.filter(id=user_id).first()
+            if topics is None:
+                return Response({
+                    "message": "Topics are not Selected"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
             if user is not None:
                 username = user.username
 
@@ -102,7 +100,8 @@ class AddBooks(APIView):
                     author_name=author_name,
                     description=description,
                     added_by_users=[username],
-                    rating=rating
+                    rating=rating,
+                    topics=topics
                 )
                 listed_book.save()
 

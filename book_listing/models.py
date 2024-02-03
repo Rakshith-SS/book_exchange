@@ -14,6 +14,7 @@ class ListedBooks(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     description = models.TextField()
     rating = models.IntegerField()
+    topics = ArrayField(models.CharField(max_length=256), blank=True)
     added_by_users = ArrayField(models.CharField(max_length=512), blank=True)
 
     def __str__(self):
