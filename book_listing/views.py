@@ -7,7 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 import json
 
 
-class GetListedBooks2(APIView):
+class GetListedBooks(APIView):
     def get(self, request):
         try:
             # listed_books = ListedBooks.objects.filter(is_deleted=False).all()
@@ -52,65 +52,6 @@ class GetListedBooks2(APIView):
                         "id": 1
                     }
                 ]
-            }, status=status.HTTP_200_OK)
-
-
-class GetListedBooks(APIView):
-    def get(self, request):
-        try:
-            listed_books = ListedBooks.objects.filter(is_deleted=False)
-            # serialized_q = GetBooksSerializer(data=listed_books, many=True)
-            output_resp = []
-            # for listed_book in listed_books:
-            #     listed_book['created_at'] = listed_book['created_at'].strftime(
-            #         "%Y-%m-%d %H:%M:%S")
-            #     listed_book['updated_at'] = listed_book['updated_at'].strftime(
-            #         "%Y-%m-%d %H:%M:%S")
-            #     output_resp.append(listed_book)
-            # from django.core.serializer
-            # output_resp = serializers.serialize(data=listed_books, many=True)
-            listed_books[0]
-
-            data = [
-                {
-                    "added_by_user_ids": [1],
-                    "book_name": "Sherlock Holmes",
-                    "author_name": "Sir Arthur Conan Doyle",
-                    "description": "A Detective Novel",
-                    "rating": 1,
-                    "id": 1,
-                    "added_by_users": ["Rakshith"]
-                },
-                {
-                    "added_by_user_ids": [2],
-                    "book_name": "Sherlock Holmes 2",
-                    "author_name": "Sir Arthur Conan Doyle",
-                    "description": "A Detective Novel",
-                    "rating": 6,
-                    "id": 2,
-                    "added_by_users": ["Sagar"]
-                },
-                {
-                    "added_by_user_ids": [2],
-                    "book_name": "Head First, Python",
-                    "author_name": "a",
-                    "description": "Study Book",
-                    "rating": 6,
-                    "id": 3,
-                    "added_by_users": ["Vishwas"]
-                }
-            ]
-
-            return Response(
-                {"message": "success",
-                 "data": data  # serialized_q
-                 }, status=200)
-
-        except Exception as e:
-            print(e)
-            return Response({
-                "message": "success",
-                "data": []
             }, status=status.HTTP_200_OK)
 
 
