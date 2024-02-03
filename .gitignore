@@ -9,6 +9,9 @@ media
 # Backup files # 
 *.bak 
 
+
+migrations
+
 # If you are using PyCharm # 
 # User-specific stuff
 .idea/**/workspace.xml
@@ -121,6 +124,9 @@ venv.bak/
 
 # sftp configuration file 
 sftp-config.json 
+
+# migrations
+migrations/
 
 # Package control specific files Package 
 Control.last-run 
