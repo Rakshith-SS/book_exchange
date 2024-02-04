@@ -96,7 +96,7 @@ class UserProfileAPI(APIView):
                     "username": "",
                     "short_description": "",
                     "books_uploaded_by_user": []
-                    }
+                }
             }, status=status.HTTP_200_OK)
 
         data_resp = {}
@@ -128,3 +128,24 @@ class UserProfileAPI(APIView):
             "message": "success",
             "data": data_resp
         }, status=status.HTTP_200_OK)
+
+
+class GetUserWalletAccountInfo(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        user_id = request.user.id
+
+        user = User.objects.filter(id=user_id).first()
+
+        if user is None:
+            return Response({
+                "message": "User Doesn't Exist/Token Expired"
+            }, status=status.HTTP_200_OK)
+
+        user_wallet_detail = user.wallet
+        resp = {
+            "message": "success",
+            "wallet_balance": user_wallet_detail
+        }
+        return Response(resp, status=status.HTTP_200_OK)
