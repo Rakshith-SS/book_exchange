@@ -8,8 +8,9 @@ from .serializers import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from .models import User, InterestedTopic
+from .models import User, InterestedTopic, BooksRequested
 from book_listing.models import ListedBooks
+from book_listing.helpers import get_user_id_dict
 
 
 class RegisterUserViews(APIView):
@@ -85,10 +86,11 @@ class LoginUser(APIView):
 
 
 class UserProfileAPI(APIView):
-    permission_classes = (IsAuthenticated, )
+    # permission_classes = (IsAuthenticated, )
 
     def get(self, request, user_id):
         user = User.objects.filter(id=user_id).first()
+        user_id = user.id
         if user is None:
             return Response({
                 "message": "success",
@@ -106,6 +108,20 @@ class UserProfileAPI(APIView):
         listed_books = ListedBooks.objects.filter(is_deleted=False).all()
         output_resp = []
         for listed_book in listed_books:
+            # Check if the book is available in
+            # Table
+            book_id = listed_book.id
+            book_lended = BooksRequested.objects.filter(
+                issuer_user_id=user_id, book_id=book_id).first()
+            if book_lended is not None:
+                book_state = book_lended.book_state
+                if book_state == 1:
+                    book_status = "Book Under request approval."
+                # borrower_user_id = book_lended.borrower_user_id
+                if book_state == 2:
+                    book_status = "Book has been exchanged."
+            else:
+                book_status = "Request For Access."
             data = {}
             data['created_at'] = listed_book.created_at.strftime(
                 "%Y-%m-%d %H:%M:%S")
@@ -120,6 +136,9 @@ class UserProfileAPI(APIView):
             data["rating"] = listed_book.rating
             # data["rating"] = listed_book.rating
             data["id"] = listed_book.id
+            data["book_status"] = book_status
+            data["added_by_users_list"] = get_user_id_dict(
+                listed_book.added_by_user_ids)
             output_resp.append(data)
 
         data_resp["books_uploaded_by_user"] = output_resp
@@ -146,6 +165,8 @@ class GetUserWalletAccountInfo(APIView):
         user_wallet_detail = user.wallet
         resp = {
             "message": "success",
-            "wallet_balance": user_wallet_detail
+            "wallet_balance": user_wallet_detail,
+            "user_id": user.id,
+            "username": user.username
         }
         return Response(resp, status=status.HTTP_200_OK)

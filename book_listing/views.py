@@ -6,17 +6,31 @@ from .serializer import AddBookSerializer
 from rest_framework.permissions import IsAuthenticated
 from users.models import User, BooksRequested
 from uuid import uuid4
+from .helpers import get_user_id_dict
 
 
 class GetListedBooks(APIView):
     def get(self, request):
         try:
-            # listed_books = ListedBooks.objects.filter(is_deleted=False).all()
             listed_books = ListedBooks.objects.filter(is_deleted=False).all()
-            # serialized_q = GetBooksSerializer(data=listed_books, many=True)
             output_resp = []
             for listed_book in listed_books:
+                # Check if the book is available in
+                # Table
+                book_id = listed_book.id
+                book_lended = BooksRequested.objects.filter(
+                    book_id=book_id).first()
+                if book_lended is not None:
+                    book_state = book_lended.book_state
+                    if book_state == 1:
+                        book_status = "Book Under request approval."
+                    # borrower_user_id = book_lended.borrower_user_id
+                    if book_state == 2:
+                        book_status = "Book has been exchanged."
+                else:
+                    book_status = "Request For Access."
                 data = {}
+                added_by_user_ids = listed_book.added_by_user_ids
                 data['created_at'] = listed_book.created_at.strftime(
                     "%Y-%m-%d %H:%M:%S")
                 data['updated_at'] = listed_book.updated_at.strftime(
@@ -30,7 +44,10 @@ class GetListedBooks(APIView):
                 data["rating"] = listed_book.rating
                 # data["rating"] = listed_book.rating
                 data["id"] = listed_book.id
-                data["added_by_users_list"] = [{"rakshith": 2}, {"sagar": 6}]
+                data["added_by_users_list"] = get_user_id_dict(
+                    added_by_user_ids)  # [{"rakshith": 2}, {"sagar": 6}]
+                data["added_by_users_list"] = get_user_id_dict(
+                    listed_book.added_by_user_ids)
                 output_resp.append(data)
             return Response(
                 {"message": "success",
@@ -147,6 +164,8 @@ class GetPersonalRecommendations(APIView):
                         data["rating"] = listed_book.rating
                         # data["rating"] = listed_book.rating
                         data["id"] = listed_book.id
+                        data["added_by_users_list"] = get_user_id_dict(
+                            listed_book.added_by_user_ids)
                         output_resp.append(data)
 
             return Response({
@@ -195,7 +214,7 @@ class RequestForBook(APIView):
                     if book_check.book_state != 0:
                         return Response({
                             "message": "Book is currently borrowed or requested for approval"
-                        }, status=status.HTTP_400_OK)
+                        }, status=status.HTTP_400_BAD_REQUEST)
 
                 book_request = BooksRequested(
                     book_id=book_id,
@@ -229,14 +248,19 @@ class ApproveBookRequest(APIView):
         ).order_by('-created_at').first()
 
         if check_book is not None:
+            user_id = check_book.borrower_user_id
+            user = User.objects.filter(id=user_id).first()
+            user.wallet = user.wallet - 10
+            user.save()
             BooksRequested.objects.filter(
                 request_id=request_id
             ).order_by('-created_at').update(
                 book_state=2
             )
+
         return Response({
             "message": "success"
-            }, status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
 
 
 class GetListOfApprovalBooks(APIView):
