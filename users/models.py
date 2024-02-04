@@ -32,6 +32,7 @@ class InterestedTopic(models.Model):
     2 - borrowed
 """
 
+
 class BooksRequested(models.Model):
     book_id = models.IntegerField()
     issuer_user_id = models.IntegerField()
@@ -39,3 +40,4 @@ class BooksRequested(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     book_state = models.IntegerField()
+    request_id = models.CharField(default=uuid4().hex)
